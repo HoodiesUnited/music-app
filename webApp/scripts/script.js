@@ -116,6 +116,9 @@ app.musixRequest = function() { //Options is an object with the config for the r
             //Get just the primary artist's name removing featured artists
             artist_name = artist_name.split(' feat.')[0];
 
+            //Remove any spaces around the artist name
+            artist_name = artist_name.trim();
+
             const genreList = track.track.primary_genres.music_genre_list;
             let genre_name = "";
             if (genreList.length > 0) {
@@ -194,8 +197,8 @@ app.lyricsRequest = function(track){
 }
 
 app.trimLyrics = function (rawLyrics) {
-  let lyricsEdited =  rawLyrics.split('...')[0];
-
+  //Remove the warning text at the bottom of the lyrics
+    let lyricsEdited =  rawLyrics.split('...')[0];
 
   return lyricsEdited;
 }
@@ -323,8 +326,8 @@ app.makeQuestions = function (numberOfQuestions, genre) {
                     //Randomize the arist list for this artist, creating a copy of the artist list array
                     let otherArtists  = app.randomizeArray( artistList ) ;
 
-                    otherArtists.splice( artistList.indexOf(artist_name), 1 );
 
+                    otherArtists.splice( otherArtists.indexOf(artist_name), 1 );
                     question.choices =  app.randomizeArray ([artist_name, otherArtists[0], otherArtists[1], otherArtists[2]  ] );
                     // console.log(`question: `,  question);
 
@@ -447,11 +450,9 @@ app.loadQuestion = function () {
     //Blank out the giphy from feedback section
     $('.giphy').attr('src','').attr('alt','');
 
-    //Remove correct answer h3 from feedback
-    $('.theCorrectAnswerIs').remove();
-
     //Remove feedback button from feedbacksection
     $('.feedback button').remove();
+
 
 
     app.questionsPromise.then( questions => {
@@ -493,16 +494,18 @@ app.handleAnswer = function(e) {
         $('.artistName').html(`Artist: ${correctArtist}` );
         $('.trackName').html(`Song: ${question.answer.track_name}`);
 
-
+        //Right answer
         if ($(e.target).text().trim() === correctArtist) {
+            $('.theCorrectAnswerIs').hide();
             app.score = app.score + 1;
-            $('.feedback h2').text("CORRECT");
+            $('.feedback h2').text('CORRECT');
             $('.score').text(app.score);
-        } else {
-            console.log("ELSE STATEMENT TRIGGERED BY WRONG ANSWER");
-            $('.feedback h2').text("WRONG");
-            $('.feedbackContent').prepend( `<h3 class=".theCorrectAnswerIs" >The correct answer is:</h3>` ) ;
+        }
 
+        //Wrong answer
+        if ($(e.target).text().trim() !== correctArtist)  {
+            $('.feedback h2').text("WRONG");
+            $('.theCorrectAnswerIs').show();
         }
 
         //Greater or equal to length because we've already incremented questionIndex. So when on the last question, it should be equal to the length.
@@ -512,8 +515,6 @@ app.handleAnswer = function(e) {
         } else {
             $('.feedback .trackName').after(`<button class="nextQuestion button1">Next Question >></button>`);
         }
-
-
     });
 }//ENd of handleAnswer function
 
